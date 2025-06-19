@@ -1,197 +1,113 @@
+document.addEventListener("DOMContentLoaded", () => {
+  const toDoInput = document.querySelector('.todo-input');
+  const toDoBtn = document.querySelector('.todo-btn');
+  const toDoList = document.querySelector('.todo-list');
+  const standardTheme = document.querySelector('.standard-theme');
+  const lightTheme = document.querySelector('.light-theme');
+  const darkerTheme = document.querySelector('.darker-theme');
 
+  let savedTheme = localStorage.getItem('savedTheme') || 'standard';
+  changeTheme(savedTheme);
 
-const toDoInput = document.querySelector('.todo-input');
-const toDoBtn = document.querySelector('.todo-btn');
-const toDoList = document.querySelector('.todo-list');
-const standardTheme = document.querySelector('.standard-theme');
-const lightTheme = document.querySelector('.light-theme');
-const darkerTheme = document.querySelector('.darker-theme');
+  toDoBtn.addEventListener('click', addToDo);
+  toDoList.addEventListener('click', deletecheck);
+  standardTheme.addEventListener('click', () => changeTheme('standard'));
+  lightTheme.addEventListener('click', () => changeTheme('light'));
+  darkerTheme.addEventListener('click', () => changeTheme('darker'));
 
+  getTodos();
 
-
-
-toDoBtn.addEventListener('click', addToDo);
-toDoList.addEventListener('click', deletecheck);
-document.addEventListener("DOMContentLoaded", getTodos);
-standardTheme.addEventListener('click', () => changeTheme('standard'));
-lightTheme.addEventListener('click', () => changeTheme('light'));
-darkerTheme.addEventListener('click', () => changeTheme('darker'));
-
-let savedTheme = localStorage.getItem('savedTheme');
-savedTheme === null ?
-    changeTheme('standard')
-    : changeTheme(localStorage.getItem('savedTheme'));
-
-
-function addToDo(event) {
-    
+  function addToDo(event) {
     event.preventDefault();
+    if (toDoInput.value.trim() === '') {
+      alert("You must write something!");
+      return;
+    }
 
+    createTodoElement(toDoInput.value);
+    saveLocal(toDoInput.value);
+    toDoInput.value = '';
+  }
 
+  function deletecheck(event) {
+    const item = event.target;
+    if (item.classList.contains('delete-btn')) {
+      const todo = item.parentElement;
+      todo.classList.add("fall");
+      removeLocalTodos(todo);
+      todo.addEventListener('transitionend', () => {
+        todo.remove();
+      });
+    }
+
+    if (item.classList.contains('check-btn')) {
+      item.parentElement.classList.toggle("completed");
+    }
+  }
+
+  function createTodoElement(text) {
     const toDoDiv = document.createElement("div");
     toDoDiv.classList.add('todo', `${savedTheme}-todo`);
 
-    
     const newToDo = document.createElement('li');
-    if (toDoInput.value === '') {
-            alert("You must write something!");
-        } 
-    else {
-  
-        newToDo.innerText = toDoInput.value;
-        newToDo.classList.add('todo-item');
-        toDoDiv.appendChild(newToDo);
+    newToDo.innerText = text;
+    newToDo.classList.add('todo-item');
+    toDoDiv.appendChild(newToDo);
 
-   
-        savelocal(toDoInput.value);
+    const checked = document.createElement('button');
+    checked.innerHTML = '<i class="fas fa-check"></i>';
+    checked.classList.add('check-btn', `${savedTheme}-button`);
+    toDoDiv.appendChild(checked);
 
-       
-        const checked = document.createElement('button');
-        checked.innerHTML = '<i class="fas fa-check"></i>';
-        checked.classList.add('check-btn', `${savedTheme}-button`);
-        toDoDiv.appendChild(checked);
-      
-        const deleted = document.createElement('button');
-        deleted.innerHTML = '<i class="fas fa-trash"></i>';
-        deleted.classList.add('delete-btn', `${savedTheme}-button`);
-        toDoDiv.appendChild(deleted);
+    const deleted = document.createElement('button');
+    deleted.innerHTML = '<i class="fas fa-trash"></i>';
+    deleted.classList.add('delete-btn', `${savedTheme}-button`);
+    toDoDiv.appendChild(deleted);
 
-        toDoList.appendChild(toDoDiv);
+    toDoList.appendChild(toDoDiv);
+  }
 
-     
-        toDoInput.value = '';
-    }
-
-}   
-
-
-function deletecheck(event){
-
-  
-    const item = event.target;
-
-    if(item.classList[0] === 'delete-btn')
-    {
-        
-        item.parentElement.classList.add("fall");
-
-        removeLocalTodos(item.parentElement);
-
-        item.parentElement.addEventListener('transitionend', function(){
-            item.parentElement.remove();
-        })
-    }
-
-  
-    if(item.classList[0] === 'check-btn')
-    {
-        item.parentElement.classList.toggle("completed");
-    }
-
-
-}
-
-
-
-function savelocal(todo){
-    
-    let todos;
-    if(localStorage.getItem('todos') === null) {
-        todos = [];
-    }
-    else {
-        todos = JSON.parse(localStorage.getItem('todos'));
-    }
-
+  function saveLocal(todo) {
+    let todos = JSON.parse(localStorage.getItem('todos')) || [];
     todos.push(todo);
     localStorage.setItem('todos', JSON.stringify(todos));
-}
+  }
 
+  function getTodos() {
+    let todos = JSON.parse(localStorage.getItem('todos')) || [];
+    todos.forEach(createTodoElement);
+  }
 
-
-function getTodos() {
- 
-    let todos;
-    if(localStorage.getItem('todos') === null) {
-        todos = [];
-    }
-    else {
-        todos = JSON.parse(localStorage.getItem('todos'));
-    }
-
-    todos.forEach(function(todo) {
-        
-        const toDoDiv = document.createElement("div");
-        toDoDiv.classList.add("todo", `${savedTheme}-todo`);
-
-     
-        const newToDo = document.createElement('li');
-        
-        newToDo.innerText = todo;
-        newToDo.classList.add('todo-item');
-        toDoDiv.appendChild(newToDo);
-
- 
-        const checked = document.createElement('button');
-        checked.innerHTML = '<i class="fas fa-check"></i>';
-        checked.classList.add("check-btn", `${savedTheme}-button`);
-        toDoDiv.appendChild(checked);
-     
-        const deleted = document.createElement('button');
-        deleted.innerHTML = '<i class="fas fa-trash"></i>';
-        deleted.classList.add("delete-btn", `${savedTheme}-button`);
-        toDoDiv.appendChild(deleted);
-
-        
-        toDoList.appendChild(toDoDiv);
-    });
-}
-
-
-function removeLocalTodos(todo){
-    
-    let todos;
-    if(localStorage.getItem('todos') === null) {
-        todos = [];
-    }
-    else {
-        todos = JSON.parse(localStorage.getItem('todos'));
-    }
-
-    const todoIndex =  todos.indexOf(todo.children[0].innerText);
-   
-    todos.splice(todoIndex, 1);
- 
+  function removeLocalTodos(todoEl) {
+    let todos = JSON.parse(localStorage.getItem('todos')) || [];
+    const todoText = todoEl.children[0].innerText;
+    todos = todos.filter(t => t !== todoText);
     localStorage.setItem('todos', JSON.stringify(todos));
-}
+  }
 
-
-function changeTheme(color) {
+  function changeTheme(color) {
     localStorage.setItem('savedTheme', color);
-    savedTheme = localStorage.getItem('savedTheme');
-
+    savedTheme = color;
     document.body.className = color;
-    
-    color === 'darker' ? 
-        document.getElementById('title').classList.add('darker-title')
-        : document.getElementById('title').classList.remove('darker-title');
+
+    const title = document.getElementById('title');
+    title.classList.toggle('darker-title', color === 'darker');
 
     document.querySelector('input').className = `${color}-input`;
-   
+
     document.querySelectorAll('.todo').forEach(todo => {
-        Array.from(todo.classList).some(item => item === 'completed') ? 
-            todo.className = `todo ${color}-todo completed`
-            : todo.className = `todo ${color}-todo`;
+      const isCompleted = todo.classList.contains('completed');
+      todo.className = `todo ${color}-todo${isCompleted ? ' completed' : ''}`;
     });
+
     document.querySelectorAll('button').forEach(button => {
-        Array.from(button.classList).some(item => {
-            if (item === 'check-btn') {
-              button.className = `check-btn ${color}-button`;  
-            } else if (item === 'delete-btn') {
-                button.className = `delete-btn ${color}-button`; 
-            } else if (item === 'todo-btn') {
-                button.className = `todo-btn ${color}-button`;
-            }
-        });
+      if (button.classList.contains('check-btn')) {
+        button.className = `check-btn ${color}-button`;
+      } else if (button.classList.contains('delete-btn')) {
+        button.className = `delete-btn ${color}-button`;
+      } else if (button.classList.contains('todo-btn')) {
+        button.className = `todo-btn ${color}-button`;
+      }
     });
-}
+  }
+});
